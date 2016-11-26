@@ -12,7 +12,7 @@ from threading import Thread, current_thread
 from functools import partial
 import multiprocessing
 
-N=10000
+N=100000
 bag_of_words=[]
 numclasses = 2
 with open('yelp_academic_dataset_review.json', 'r') as file_req:
@@ -41,13 +41,13 @@ for i in range(0,N):
 
 
 for k,v in dictionary.items():
-	if (dictionary[k][0] < 0.5 * dictionary[k][1] and dictionary[k][1] > 5) or (dictionary[k][1] < 0.5 * dictionary[k][0] and dictionary[k][0] > 5):
+	if (dictionary[k][0] < 0.2 * dictionary[k][1] and dictionary[k][1] > 5) or (dictionary[k][1] < 0.2 * dictionary[k][0] and dictionary[k][0] > 5):
 		if len(k) > 2:
 			bag_of_words.append(k)
 	
 
-print len(bag_of_words)
 
+print len(bag_of_words)
 
 data = df['text']
 rev = df['stars'] 
@@ -74,15 +74,18 @@ def featureExtraction(p,t):
 
 def calculateParallel(threads):	
 	pool = multiprocessing.Pool(threads)
+	result = []
 	job_args = [(item_a, rev[i]) for i, item_a in enumerate(data)]
-	l=pool.map(product_helper,job_args)
+	l=pool.map_async(product_helper,job_args,callback=result.extend)
+	l.wait()
 	pool.close()
 	pool.join()
-	return l
+	return result
 
 
+ 
 temp_X = calculateParallel(12)
-#print temp_X[0]
+
 
 
 numROWS = len(temp_X)
@@ -170,7 +173,15 @@ for i in range(0,len(out)):
 	else:
 		if test_y[i][1] == 1:
 			count+=1
-			
-print len(out)
-print count/float(len(out))
+
+
+print "Accuracy is {}".format(100 * count/float(len(out)))
+
+
+
+
+
+
+
+
 
